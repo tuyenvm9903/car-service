@@ -12,13 +12,15 @@ import exportRoutes from './routes/exports.js';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(helmet({
-    crossOriginResourcePolicy: false // Allow PDF to be downloaded in modern browsers
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 app.use(morgan('dev'));
 app.use(express.json());
 
@@ -27,20 +29,18 @@ app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/exports', exportRoutes);
 
-// Health check endpoint
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK' });
+  res.status(200).json({ status: 'OK' });
 });
 
-// Initialize database, run migrations and start server
-initializeDatabase()
-    .then(async () => {
-        await runMigrations('up');
-        app.listen(port, () => {
-            console.log(`Server running on port ${port}`);
-        });
-    })
-    .catch((error) => {
-        console.error('Failed to initialize database or run migrations:', error);
-        process.exit(1);
-    });
+app.listen(PORT, '0.0.0.0', async () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+
+  try {
+    await initializeDatabase();
+    await runMigrations('up');
+    console.log('✅ Database initialized & migrations completed');
+  } catch (error) {
+    console.error('❌ Database init or migration failed:', error);
+  }
+});

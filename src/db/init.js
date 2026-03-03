@@ -24,14 +24,12 @@ export async function getDb() {
   const dbPath = path.join(__dirname, '../../data/database.sqlite');
   const dbDir = path.dirname(dbPath);
 
-  // Create data directory if it doesn't exist
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
   const rawDb = new Database(dbPath);
 
-  // Wrap better-sqlite3's sync API to look like the async API used in the routes
   db = {
     raw: rawDb,
     async all(sql, params) {

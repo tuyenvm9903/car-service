@@ -1,5 +1,4 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
@@ -7,6 +6,15 @@ import fs from 'fs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 let db = null;
+
+// Normalize parameters passed to queries so existing code keeps working
+function normalizeParams(params) {
+  if (params === undefined || params === null) return [];
+  // If it's already an array, keep as-is
+  if (Array.isArray(params)) return params;
+  // For single value (string/number/etc.), wrap into array
+  return [params];
+}
 
 export async function getDb() {
   if (db) {
@@ -21,10 +29,30 @@ export async function getDb() {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database
-  });
+  const rawDb = new Database(dbPath);
+
+  // Wrap better-sqlite3's sync API to look like the async API used in the routes
+  db = {
+    raw: rawDb,
+    async all(sql, params) {
+      const stmt = rawDb.prepare(sql);
+      const rows = stmt.all(...normalizeParams(params));
+      return rows;
+    },
+    async get(sql, params) {
+      const stmt = rawDb.prepare(sql);
+      const row = stmt.get(...normalizeParams(params));
+      return row;
+    },
+    async run(sql, params) {
+      const stmt = rawDb.prepare(sql);
+      const info = stmt.run(...normalizeParams(params));
+      return info;
+    },
+    async exec(sql) {
+      rawDb.exec(sql);
+    }
+  };
 
   return db;
 }

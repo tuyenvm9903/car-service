@@ -45,7 +45,12 @@ export async function getDb() {
     async run(sql, params) {
       const stmt = rawDb.prepare(sql);
       const info = stmt.run(...normalizeParams(params));
-      return info;
+      // Normalize return shape to be compatible with `sqlite`'s run result
+      // (`lastID` is used in routes/migrations, while better-sqlite3 exposes `lastInsertRowid`)
+      return {
+        ...info,
+        lastID: info.lastInsertRowid
+      };
     },
     async exec(sql) {
       rawDb.exec(sql);

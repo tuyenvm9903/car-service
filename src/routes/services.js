@@ -13,7 +13,8 @@ router.get('/vehicle/:vehicleId', async (req, res) => {
         `
           SELECT 
             s.*,
-            v.name AS vehicle_name
+            v.name AS vehicle_name,
+            v.vin AS vehicle_vin
           FROM service_records s
           JOIN vehicles v ON v.id = s.vehicle_id
           ORDER BY s.service_date DESC
@@ -27,7 +28,8 @@ router.get('/vehicle/:vehicleId', async (req, res) => {
       `
         SELECT 
           s.*,
-          v.name AS vehicle_name
+          v.name AS vehicle_name,
+          v.vin AS vehicle_vin
         FROM service_records s
         JOIN vehicles v ON v.id = s.vehicle_id
         WHERE s.vehicle_id = ?

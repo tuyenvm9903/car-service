@@ -10,9 +10,15 @@ RUN apt-get update && apt-get install -y \
 
 COPY package*.json ./
 
+# Force better-sqlite3 to build from source
+ENV npm_config_build_from_source=true
+
 RUN npm install
 
 COPY . .
+
+# Rebuild better-sqlite3 to ensure it's built for the correct platform
+RUN npm rebuild better-sqlite3
 
 EXPOSE 3000
 
